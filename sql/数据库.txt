@@ -1,0 +1,155 @@
+schema.sql：
+
+CREATE DATABASE IF NOT EXISTS movie_recommend
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_unicode_ci;
+
+USE movie_recommend;
+
+DROP TABLE IF EXISTS recommendresult;
+DROP TABLE IF EXISTS personalratings;
+DROP TABLE IF EXISTS movieinfo;
+DROP TABLE IF EXISTS user;
+
+CREATE TABLE user (
+  user_id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  register_time DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE movieinfo (
+  movie_id INT AUTO_INCREMENT PRIMARY KEY,
+  movie_title VARCHAR(200) NOT NULL,
+  movie_genre VARCHAR(100),
+  poster_url VARCHAR(500)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE personalratings (
+  rating_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  movie_id INT NOT NULL,
+  rating DECIMAL(2,1) NOT NULL CHECK (rating >= 0.5 AND rating <= 5.0),
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (movie_id) REFERENCES movieinfo(movie_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE recommendresult (
+  result_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  movie_id INT NOT NULL,
+  predicted_rating DECIMAL(4,3),
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (movie_id) REFERENCES movieinfo(movie_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+seed_movies.sql：
+
+USE movie_recommend;
+
+INSERT INTO movieinfo (movie_title, movie_genre, poster_url) VALUES
+('The Shawshank Redemption', 'Drama', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+The+Shawshank+Redemption%2C+prison+drama%2C+dark+moody+atmosphere+with+hopeful+undertones%2C+cinematic+lighting&image_size=portrait_4_3'),
+('The Godfather', 'Crime,Drama', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+The+Godfather%2C+classic+mafia+film%2C+dark+elegant+Italian+American+theme%2C+rose+and+violin+motif&image_size=portrait_4_3'),
+('The Dark Knight', 'Action,Crime,Drama', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+The+Dark+Knight%2C+Batman+silhouette%2C+gritty+urban+cityscape%2C+Joker+theme%2C+dark+cinematic&image_size=portrait_4_3'),
+('Pulp Fiction', 'Crime,Drama', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Pulp+Fiction%2C+retro+1990s+style%2C+cult+classic%2C+neon+aesthetic%2C+dark+comedy+crime+theme&image_size=portrait_4_3'),
+('Schindlers List', 'Biography,Drama,History', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Schindlers+List%2C+black+and+white+historical+drama%2C+girl+in+red+coat+motif%2C+wartime+setting&image_size=portrait_4_3'),
+('Forrest Gump', 'Drama,Romance', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Forrest+Gump%2C+bench+scene%2C+life+journey+theme%2C+warm+nostalgic+American+scenery&image_size=portrait_4_3'),
+('Inception', 'Action,Sci-Fi,Thriller', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Inception%2C+dream+within+dream+theme%2C+city+folding+visual%2C+maze+design%2C+sci-fi+thriller&image_size=portrait_4_3'),
+('The Matrix', 'Action,Sci-Fi', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+The+Matrix%2C+green+digital+rain+code%2C+cyberpunk+aesthetic%2C+Neo+and+Morpheus%2C+futuristic&image_size=portrait_4_3'),
+('Interstellar', 'Adventure,Drama,Sci-Fi', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Interstellar%2C+space+exploration%2C+black+hole+Gargantua%2C+cosmic+epic+scale%2C+wormhole+visual&image_size=portrait_4_3'),
+('Fight Club', 'Drama', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Fight+Club%2C+soap+bar+visual%2C+underground+culture+theme%2C+gritty+urban+style%2C+minimalist+design&image_size=portrait_4_3'),
+('Goodfellas', 'Biography,Crime,Drama', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Goodfellas%2C+mobster+classic%2C+1970s+Italian+American+gangster+theme%2C+retro+cinematic&image_size=portrait_4_3'),
+('The Silence of the Lambs', 'Crime,Drama,Thriller', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Silence+of+the+Lambs%2C+psychological+thriller%2C+death+head+moth+motif%2C+dark+and+eerie+atmosphere&image_size=portrait_4_3'),
+('Se7en', 'Crime,Drama,Mystery', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Se7en%2C+dark+crime+thriller%2C+seven+deadly+sins+theme%2C+rainy+urban+atmosphere%2C+noir+style&image_size=portrait_4_3'),
+('The Lord of the Rings: The Return of the King', 'Adventure,Drama,Fantasy', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Lord+of+the+Rings+Return+of+the+King%2C+epic+fantasy%2C+Middle+Earth+battle%2C+golden+and+dark+contrast%2C+crown+and+ring+motif&image_size=portrait_4_3'),
+('Gladiator', 'Action,Adventure,Drama', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Gladiator%2C+Roman+Colosseum%2C+warrior+in+armor%2C+epic+historical+action%2C+golden+lighting&image_size=portrait_4_3'),
+('The Departed', 'Crime,Drama,Thriller', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+The+Departed%2C+undercover+cop+vs+mole+theme%2C+Boston+setting%2C+crime+thriller+aesthetic&image_size=portrait_4_3'),
+('Whiplash', 'Drama,Music', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Whiplash%2C+drummer+and+conductor%2C+intense+music+academy+theme%2C+blood+on+drum+kit%2C+dramatic+lighting&image_size=portrait_4_3'),
+('The Prestige', 'Drama,Mystery,Sci-Fi', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+The+Prestige%2C+magician+duel+theme%2C+Victorian+era+aesthetic%2C+mystery+and+illusion%2C+dark+elegant&image_size=portrait_4_3'),
+('Parasite', 'Comedy,Drama,Thriller', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Parasite%2C+Korean+film%2C+social+class+contrast%2C+staircase+motif%2C+dark+comedy+drama+style&image_size=portrait_4_3'),
+('Joker', 'Crime,Drama,Thriller', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Joker%2C+clown+makeup%2C+stairs+dance+scene%2C+gritty+urban+setting%2C+psychological+drama&image_size=portrait_4_3'),
+('Avengers: Endgame', 'Action,Adventure,Drama', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Avengers+Endgame%2C+superhero+ensemble%2C+epic+battle+theme%2C+cosmic+scale%2C+Marvel+cinematic+style&image_size=portrait_4_3'),
+('Titanic', 'Drama,Romance', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Titanic%2C+ship+and+couple+silhouette%2C+romantic+epic%2C+ocean+sunset%2C+classic+film+aesthetic&image_size=portrait_4_3'),
+('The Green Mile', 'Crime,Drama,Fantasy', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+The+Green+Mile%2C+prison+death+row+setting%2C+supernatural+healing+theme%2C+emotional+drama&image_size=portrait_4_3'),
+('Saving Private Ryan', 'Drama,War', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Saving+Private+Ryan%2C+World+War+II+D-Day+theme%2C+soldiers+on+beach%2C+epic+war+drama&image_size=portrait_4_3'),
+('Braveheart', 'Biography,Drama,War', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Braveheart%2C+Scottish+warrior+William+Wallace%2C+medieval+battle%2C+epic+historical+drama&image_size=portrait_4_3'),
+('Django Unchained', 'Drama,Western', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Django+Unchained%2C+spaghetti+western+style%2C+cowboy+and+slavery+theme%2C+Tarantino+aesthetic%2C+bold+red+and+black&image_size=portrait_4_3'),
+('Spider-Man: Into the Spider-Verse', 'Animation,Action,Adventure', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Spider-Man+Into+the+Spider-Verse%2C+comic+book+animation+style%2C+multiple+Spider-Man+variants%2C+vibrant+colors%2C+urban+grit&image_size=portrait_4_3'),
+('The Lion King', 'Animation,Adventure,Drama', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+The+Lion+King%2C+African+savanna+sunrise%2C+lion+cub+Simba%2C+classic+Disney+animation+style%2C+majestic+landscape&image_size=portrait_4_3'),
+('Back to the Future', 'Adventure,Comedy,Sci-Fi', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Back+to+the+Future%2C+DeLorean+time+machine%2C+1980s+retro+sci-fi%2C+lightning+and+clock+tower&image_size=portrait_4_3'),
+('Terminator 2: Judgment Day', 'Action,Sci-Fi', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Terminator+2+Judgment+Day%2C+cyborg+assassin%2C+post+apocalyptic+theme%2C+liquid+metal+visual%2C+action+sci-fi&image_size=portrait_4_3'),
+('Eternal Sunshine of the Spotless Mind', 'Drama,Romance,Sci-Fi', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Eternal+Sunshine+of+the+Spotless+Mind%2C+surreal+romance%2C+memory+erasure+theme%2C+dreamlike+visual+style%2C+indie+aesthetic&image_size=portrait_4_3'),
+('The Truman Show', 'Comedy,Drama', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+The+Truman+Show%2C+man+in+artificial+world%2C+reality+TV+satire%2C+staircase+to+sky%2C+uplifting+theme&image_size=portrait_4_3'),
+('Toy Story', 'Animation,Adventure,Comedy', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Toy+Story%2C+cowboy+doll+Woody+and+space+ranger+Buzz%2C+Pixar+animation+style%2C+childhood+adventure%2C+vibrant+colors&image_size=portrait_4_3'),
+('The Social Network', 'Biography,Drama', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+The+Social+Network%2C+Facebook+origin+story%2C+tech+startup+theme%2C+Harvard+campus%2C+dark+and+cool+blue+tones&image_size=portrait_4_3'),
+('Mad Max: Fury Road', 'Action,Adventure,Sci-Fi', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Mad+Max+Fury+Road%2C+post+apocalyptic+desert%2C+war+rig+vehicles%2C+high+octane+action%2C+orange+and+teal+color+palette&image_size=portrait_4_3'),
+('La La Land', 'Comedy,Drama,Musical', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+La+La+Land%2C+romantic+musical%2C+Los+Angeles+sunset%2C+dancing+couple%2C+vibrant+colorful+retro+style&image_size=portrait_4_3'),
+('A Beautiful Mind', 'Biography,Drama', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+A+Beautiful+Mind%2C+mathematics+genius%2C+schizophrenia+theme%2C+Princeton+University%2C+elegant+and+thoughtful+mood&image_size=portrait_4_3'),
+('The Grand Budapest Hotel', 'Adventure,Comedy,Crime', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+The+Grand+Budapest+Hotel%2C+Wes+Anderson+style%2C+pastel+pink+color+palette%2C+symmetrical+composition%2C+quirky+elegance&image_size=portrait_4_3'),
+('Coco', 'Animation,Adventure,Family', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Coco%2C+Mexican+Day+of+the+Dead+theme%2C+skeleton+characters%2C+vibrant+orange+marigold+flowers%2C+musical+adventure&image_size=portrait_4_3'),
+('Gone Girl', 'Drama,Mystery,Thriller', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Gone+Girl%2C+psychological+thriller%2C+missing+wife+mystery%2C+media+circus+theme%2C+dark+and+suspenseful&image_size=portrait_4_3'),
+('The Wolf of Wall Street', 'Biography,Comedy,Crime', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Wolf+of+Wall+Street%2C+stockbroker+excess%2C+gold+and+green+money+theme%2C+wild+party+lifestyle%2C+Scorsese+style&image_size=portrait_4_3'),
+('Shutter Island', 'Mystery,Thriller', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Shutter+Island%2C+mental+asylum+on+island%2C+psychological+mystery%2C+stormy+weather+atmosphere%2C+dark+and+brooding&image_size=portrait_4_3'),
+('The Shining', 'Drama,Horror', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+The+Shining%2C+haunted+hotel%2C+maze+and+axe+motif%2C+Jack+Nicholson+iconic+face%2C+horror+classic+style&image_size=portrait_4_3'),
+('Jurassic Park', 'Action,Adventure,Sci-Fi', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Jurassic+Park%2C+dinosaurs+on+island%2C+T-Rex+silhouette%2C+adventure+and+wonder+theme%2C+Spielberg+classic&image_size=portrait_4_3'),
+('Up', 'Animation,Adventure,Comedy', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Up%2C+house+with+balloons%2C+old+man+and+boy+scout%2C+colorful+adventure%2C+Pixar+warm+style%2C+South+American+landscape&image_size=portrait_4_3'),
+('Wall-E', 'Animation,Adventure,Family', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Wall-E%2C+robot+on+deserted+Earth%2C+space+adventure%2C+environmental+theme%2C+Pixar+sci-fi+romance%2C+warm+colors&image_size=portrait_4_3'),
+('Blade Runner 2049', 'Drama,Mystery,Sci-Fi', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Blade+Runner+2049%2C+cyberpunk+futuristic+city%2C+neon+and+fog+aesthetic%2C+android+theme%2C+orange+and+teal+palette&image_size=portrait_4_3'),
+('Get Out', 'Horror,Mystery,Thriller', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Get+Out%2C+social+thriller%2C+sunken+place+motif%2C+suspense+and+horror%2C+modern+classic+style%2C+psychological+theme&image_size=portrait_4_3'),
+('Gravity', 'Drama,Sci-Fi,Thriller', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Gravity%2C+astronaut+in+space%2C+Earth+in+background%2C+stranded+in+orbit+theme%2C+cinematic+space+thriller&image_size=portrait_4_3'),
+('Deadpool', 'Action,Comedy', 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Movie+poster+for+Deadpool%2C+antihero+superhero%2C+red+and+black+suit%2C+fourth+wall+breaking+comedy%2C+action+and+humor+style&image_size=portrait_4_3');
+
+seed_ratings.sql:
+
+USE movie_recommend;
+
+INSERT INTO personalratings (user_id, movie_id, rating) VALUES
+(1, 1, 4.5), (1, 2, 5.0), (1, 3, 5.0), (1, 4, 4.0), (1, 6, 5.0), (1, 7, 4.5), (1, 8, 5.0), (1, 14, 4.5), (1, 21, 5.0), (1, 44, 4.0),
+(2, 1, 5.0), (2, 2, 4.5), (2, 3, 5.0), (2, 7, 5.0), (2, 8, 5.0), (2, 9, 5.0), (2, 14, 4.0), (2, 21, 4.5), (2, 30, 5.0), (2, 35, 4.5),
+(3, 9, 5.0), (3, 14, 5.0), (3, 15, 4.5), (3, 25, 4.0), (3, 29, 5.0), (3, 30, 4.5), (3, 35, 5.0), (3, 44, 4.5), (3, 47, 5.0), (3, 49, 4.0),
+(4, 1, 4.5), (4, 5, 5.0), (4, 12, 4.5), (4, 13, 5.0), (4, 16, 5.0), (4, 20, 5.0), (4, 23, 4.5), (4, 40, 4.0), (4, 42, 4.5), (4, 48, 4.0),
+(5, 10, 5.0), (5, 11, 5.0), (5, 13, 4.5), (5, 16, 5.0), (5, 17, 5.0), (5, 18, 5.0), (5, 19, 5.0), (5, 20, 5.0), (5, 37, 4.0), (5, 41, 4.5),
+(6, 4, 5.0), (6, 7, 5.0), (6, 10, 5.0), (6, 11, 4.5), (6, 18, 5.0), (6, 19, 5.0), (6, 26, 4.5), (6, 31, 5.0), (6, 38, 5.0), (6, 48, 4.5),
+(7, 19, 5.0), (7, 22, 5.0), (7, 23, 4.5), (7, 24, 5.0), (7, 31, 4.5), (7, 36, 5.0), (7, 38, 4.5), (7, 39, 5.0), (7, 45, 5.0), (7, 50, 4.0),
+(8, 2, 4.5), (8, 5, 5.0), (8, 14, 4.5), (8, 15, 5.0), (8, 21, 4.5), (8, 25, 5.0), (8, 30, 4.5), (8, 35, 4.5), (8, 44, 5.0), (8, 47, 4.5),
+(9, 11, 5.0), (9, 12, 4.5), (9, 13, 5.0), (9, 16, 5.0), (9, 17, 5.0), (9, 20, 5.0), (9, 40, 4.0), (9, 41, 5.0), (9, 42, 5.0), (9, 48, 4.0),
+(10, 1, 5.0), (10, 3, 5.0), (10, 4, 5.0), (10, 6, 5.0), (10, 7, 5.0), (10, 8, 4.5), (10, 9, 5.0), (10, 14, 5.0), (10, 21, 5.0), (10, 29, 4.5),
+(11, 27, 5.0), (11, 28, 5.0), (11, 31, 4.5), (11, 33, 5.0), (11, 38, 5.0), (11, 39, 5.0), (11, 43, 4.5), (11, 45, 5.0), (11, 46, 5.0), (11, 50, 4.5),
+(12, 22, 5.0), (12, 23, 4.5), (12, 24, 5.0), (12, 25, 4.5), (12, 26, 5.0), (12, 32, 4.0), (12, 34, 4.5), (12, 36, 4.5), (12, 39, 5.0), (12, 41, 4.5),
+(13, 2, 4.0), (13, 3, 4.5), (13, 4, 4.5), (13, 5, 5.0), (13, 6, 5.0), (13, 9, 4.0), (13, 10, 5.0), (13, 14, 5.0), (13, 15, 4.5), (13, 16, 4.5),
+(14, 7, 5.0), (14, 8, 5.0), (14, 9, 5.0), (14, 10, 4.5), (14, 18, 5.0), (14, 25, 4.5), (14, 29, 5.0), (14, 35, 5.0), (14, 40, 4.5), (14, 47, 5.0),
+(15, 1, 4.0), (15, 2, 5.0), (15, 3, 5.0), (15, 12, 5.0), (15, 13, 4.5), (15, 16, 5.0), (15, 18, 4.5), (15, 19, 5.0), (15, 20, 4.5), (15, 37, 4.0),
+(16, 22, 5.0), (16, 27, 5.0), (16, 28, 5.0), (16, 31, 4.5), (16, 33, 5.0), (16, 36, 4.5), (16, 38, 5.0), (16, 39, 5.0), (16, 45, 5.0), (16, 46, 5.0),
+(17, 5, 5.0), (17, 8, 4.5), (17, 12, 5.0), (17, 14, 5.0), (17, 15, 5.0), (17, 21, 4.5), (17, 25, 5.0), (17, 30, 4.5), (17, 34, 5.0), (17, 44, 5.0),
+(18, 5, 5.0), (18, 6, 5.0), (18, 10, 5.0), (18, 13, 5.0), (18, 14, 4.5), (18, 16, 5.0), (18, 17, 5.0), (18, 19, 5.0), (18, 24, 4.5), (18, 26, 4.5),
+(19, 1, 4.5), (19, 7, 5.0), (19, 9, 5.0), (19, 29, 5.0), (19, 30, 5.0), (19, 35, 4.5), (19, 44, 5.0), (19, 46, 4.5), (19, 47, 5.0), (19, 49, 5.0),
+(20, 4, 4.5), (20, 6, 5.0), (20, 22, 5.0), (20, 23, 4.5), (20, 27, 5.0), (20, 28, 5.0), (20, 32, 4.0), (20, 36, 4.5), (20, 37, 5.0), (20, 43, 5.0);
+
+seed_users.sql:
+
+USE movie_recommend;
+
+INSERT INTO user (user_id, username, password) VALUES
+(1,  'testuser1',  '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(2,  'testuser2',  '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(3,  'testuser3',  '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(4,  'testuser4',  '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(5,  'testuser5',  '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(6,  'testuser6',  '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(7,  'testuser7',  '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(8,  'testuser8',  '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(9,  'testuser9',  '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(10, 'testuser10', '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(11, 'testuser11', '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(12, 'testuser12', '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(13, 'testuser13', '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(14, 'testuser14', '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(15, 'testuser15', '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(16, 'testuser16', '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(17, 'testuser17', '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(18, 'testuser18', '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(19, 'testuser19', '$2a$10$dummyhash00000000000000000000000000000000000000'),
+(20, 'testuser20', '$2a$10$dummyhash00000000000000000000000000000000000000');

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 电影推荐系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .form-container {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 40px;
+            width: 360px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .form-container h2 {
+            margin-bottom: 25px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            color: #FFD700;
+        }
+        .form-container input {
+            width: 100%;
+            padding: 14px 18px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 30px;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            font-size: 1em;
+            outline: none;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .form-container input:focus {
+            background: rgba(255,255,255,0.25);
+            box-shadow: 0 0 15px rgba(102,126,234,0.4);
+        }
+        .form-container .btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+        }
+        .form-container .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(118,75,162,0.6);
+        }
+        .switch-text {
+            margin-top: 15px;
+            font-size: 0.95em;
+            color: #aaa;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .switch-text span {
+            color: #feca57;
+            text-decoration: underline;
+        }
+        .switch-text:hover span {
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body>
+<div class="form-container">
+    <h2 id="formTitle">登录</h2>
+    <input type="text" id="username" placeholder="用户名">
+    <input type="password" id="password" placeholder="密码">
+    <button class="btn" id="submitBtn">登录</button>
+    <p class="switch-text" id="switchLink">
+        没有账号？<span>立即注册</span>
+    </p>
+</div>
+
+<script>
+    const formTitle = document.getElementById('formTitle');
+    const submitBtn = document.getElementById('submitBtn');
+    const switchLink = document.getElementById('switchLink');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+
+    let mode = 'login';
+
+    switchLink.addEventListener('click', () => {
+        mode = mode === 'login' ? 'register' : 'login';
+        formTitle.textContent = mode === 'login' ? '登录' : '注册';
+        submitBtn.textContent = mode === 'login' ? '登录' : '注册';
+        switchLink.innerHTML = mode === 'login'
+            ? '没有账号？<span>立即注册</span>'
+            : '已有账号？<span>去登录</span>';
+    });
+
+    submitBtn.addEventListener('click', async () => {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value.trim();
+        if (!username || !password) {
+            alert('请输入用户名和密码');
+            return;
+        }
+
+        const url = mode === 'login' ? '/api/login' : '/api/register';
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+
+            if (data.code === 0) {
+                alert(mode === 'login' ? '登录成功！' : '注册成功！');
+                if (data.user) {
+                    localStorage.setItem('currentUser', JSON.stringify(data.user));
+                    window.location.href = '/';
+                } else if (mode === 'register') {
+                    alert('注册成功，请登录');
+                    mode = 'login';
+                    formTitle.textContent = '登录';
+                    submitBtn.textContent = '登录';
+                    switchLink.innerHTML = '没有账号？<span>立即注册</span>';
+                    passwordInput.value = '';
+                }
+            } else {
+                alert(data.msg || '操作失败');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('网络错误，请稍后重试');
+        }
+    });
+</script>
+</body>
+</html>
